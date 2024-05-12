@@ -20,6 +20,7 @@ func init() {
 }
 
 func uploadDocHandler(ctx context.Context, e event.Event) error {
+	fmt.Println("works")
 	fmt.Println(e)
 	return nil
 }
