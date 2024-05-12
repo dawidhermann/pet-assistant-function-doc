@@ -15,5 +15,5 @@ steps:
       - gcloud
       - functions
       - deploy
-      - fn-asd
+      - function-1ggggg
       - --source=.
