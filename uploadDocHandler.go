@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
+	"github.com/dawidhermann/pet-assistant-function-doc/processor"
 )
 
 type DocUploadedEvent struct {
@@ -21,6 +22,9 @@ func init() {
 
 func uploadDocHandler(ctx context.Context, e event.Event) error {
 	fmt.Println("works!")
-	fmt.Println(e)
+	err := processor.HandleEvent(ctx, e)
+	if err != nil {
+		return err
+	}
 	return nil
 }
