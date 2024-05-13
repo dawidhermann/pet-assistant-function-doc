@@ -11,7 +11,7 @@ type StorageUploadEvent struct {
 	Name                    string    `json:"name"`
 	Bucket                  string    `json:"bucket"`
 	Generation              string    `json:"generation"`
-	Metageneration          int       `json:"metageneration"`
+	Metageneration          string    `json:"metageneration"`
 	ContentType             string    `json:"contentType"`
 	TimeCreated             string    `json:"timeCreated"`
 	Updated                 time.Time `json:"updated"`
