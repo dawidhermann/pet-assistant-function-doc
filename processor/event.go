@@ -10,7 +10,7 @@ type StorageUploadEvent struct {
 	SelfLink                string    `json:"selfLink"`
 	Name                    string    `json:"name"`
 	Bucket                  string    `json:"bucket"`
-	Generation              int       `json:"generation"`
+	Generation              string    `json:"generation"`
 	Metageneration          int       `json:"metageneration"`
 	ContentType             string    `json:"contentType"`
 	TimeCreated             string    `json:"timeCreated"`
