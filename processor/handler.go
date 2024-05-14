@@ -18,6 +18,7 @@ func HandleEvent(ctx context.Context, e event.Event) error {
 	location := os.Getenv("PROCESSOR_LOCATION")
 	processorId := os.Getenv("PROCESSOR_ID")
 	endpoint := fmt.Sprintf("%s-documentai.googleapis.com:443", location)
+	fmt.Println(endpoint)
 	client, err := documentai.NewDocumentProcessorClient(ctx, option.WithEndpoint(endpoint))
 	if err != nil {
 		fmt.Println(fmt.Errorf("error creating Document AI client: %w", err))
