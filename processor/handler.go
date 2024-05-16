@@ -25,23 +25,47 @@ func HandleEvent(ctx context.Context, e event.Event) error {
 	}
 	defer client.Close()
 
-	req := &documentaipb.ProcessRequest{
+	req := &documentaipb.BatchProcessRequest{
 		Name: processorId,
-		Source: &documentaipb.ProcessRequest_GcsDocument{
-			GcsDocument: &documentaipb.GcsDocument{
-				GcsUri:   createGcsUri(uploadEvent.Bucket, uploadEvent.Name),
-				MimeType: uploadEvent.ContentType,
+		InputDocuments: &documentaipb.BatchDocumentsInputConfig{
+			Source: &documentaipb.BatchDocumentsInputConfig_GcsDocuments{
+				GcsDocuments: &documentaipb.GcsDocuments{
+					Documents: []*documentaipb.GcsDocument{
+						{
+							GcsUri:   createGcsUri(uploadEvent.Bucket, uploadEvent.Name),
+							MimeType: uploadEvent.ContentType,
+						},
+					},
+				},
 			},
 		},
+		DocumentOutputConfig: &documentaipb.DocumentOutputConfig{
+			Destination: &documentaipb.DocumentOutputConfig_GcsOutputConfig_{
+				GcsOutputConfig: &documentaipb.DocumentOutputConfig_GcsOutputConfig{
+					GcsUri: fmt.Sprintf("gs://%s", os.Getenv("OCR_RESULTS_BUCKET")),
+				},
+			},
+		},
+		//OCR_RESULTS_BUCKET
+		//Source: &documentaipb.ProcessRequest_GcsDocument{
+		//	GcsDocument: &documentaipb.GcsDocument{
+		//		GcsUri:   createGcsUri(uploadEvent.Bucket, uploadEvent.Name),
+		//		MimeType: uploadEvent.ContentType,
+		//	},
+		//},
 	}
-	resp, err := client.ProcessDocument(ctx, req)
+	resp, err := client.BatchProcessDocuments(ctx, req)
 	if err != nil {
 		fmt.Println(fmt.Errorf("processDocument: %w", err))
 	}
 
 	// Handle the results.
-	document := resp.GetDocument()
-	fmt.Printf("Document Text: %s", document.GetText())
+	fmt.Println(fmt.Sprintf("gs://%s", os.Getenv("OCR_RESULTS_BUCKET")))
+	fmt.Println(resp.Name())
+	fmt.Println(resp.Metadata())
+	fmt.Println(resp.Done())
+	//document := resp.Done()
+	//fmt.Printf("Document Text: %s", document.GetText())
 	return nil
 }
 
