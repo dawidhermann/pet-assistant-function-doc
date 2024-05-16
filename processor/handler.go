@@ -46,6 +46,14 @@ func HandleEvent(ctx context.Context, e event.Event) error {
 				},
 			},
 		},
+		ProcessOptions: &documentaipb.ProcessOptions{
+			OcrConfig: &documentaipb.OcrConfig{
+				Hints: &documentaipb.OcrConfig_Hints{
+					LanguageHints: []string{"pl-PL"},
+				},
+				DisableCharacterBoxesDetection: true,
+			},
+		},
 		//OCR_RESULTS_BUCKET
 		//Source: &documentaipb.ProcessRequest_GcsDocument{
 		//	GcsDocument: &documentaipb.GcsDocument{
