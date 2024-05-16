@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/cloudevents/sdk-go/v2/event"
 	"google.golang.org/api/option"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"os"
 )
 
@@ -43,6 +44,9 @@ func HandleEvent(ctx context.Context, e event.Event) error {
 			Destination: &documentaipb.DocumentOutputConfig_GcsOutputConfig_{
 				GcsOutputConfig: &documentaipb.DocumentOutputConfig_GcsOutputConfig{
 					GcsUri: fmt.Sprintf("gs://%s", os.Getenv("OCR_RESULTS_BUCKET")),
+					FieldMask: &fieldmaskpb.FieldMask{
+						Paths: []string{"text"},
+					},
 				},
 			},
 		},
