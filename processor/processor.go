@@ -16,7 +16,6 @@ import (
 
 func HandleEvent(ctx context.Context, e event.Event) error {
 	uploadEvent, err := unmarshalEvent(e)
-	fmt.Println(uploadEvent)
 	if err != nil {
 		return err
 	}
@@ -46,8 +45,6 @@ func HandleEvent(ctx context.Context, e event.Event) error {
 		FullBatchId: res.Name(),
 	}
 	messageStr, err := json.Marshal(message)
-	fmt.Printf("BatchId: %s", batchId)
-	fmt.Printf("Message: %s", string(messageStr))
 	if err != nil {
 		return fmt.Errorf("failed to convert message to json format: %w", err)
 	}
