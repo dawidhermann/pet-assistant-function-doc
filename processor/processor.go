@@ -16,6 +16,7 @@ import (
 
 func HandleEvent(ctx context.Context, e event.Event) error {
 	uploadEvent, err := unmarshalEvent(e)
+	fmt.Println(uploadEvent)
 	if err != nil {
 		return err
 	}
