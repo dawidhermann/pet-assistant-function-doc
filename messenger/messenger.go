@@ -20,5 +20,6 @@ func WriteMessage(ctx context.Context, projectId string, topic string, message [
 	if err != nil {
 		return fmt.Errorf("failed to send a message to topic %s: %w", topic, err)
 	}
+	fmt.Println("Sent!")
 	return nil
 }
