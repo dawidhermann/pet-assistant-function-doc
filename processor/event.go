@@ -22,3 +22,10 @@ type StorageUploadEvent struct {
 	MediaLink               string    `json:"mediaLink"`
 	Etag                    string    `json:"etag"`
 }
+
+type processingTriggeredEvent struct {
+	Bucket      string `json:"bucket"`
+	Name        string `json:"name"`
+	BatchId     string `json:"batchId"`
+	FullBatchId string `json:"fullBatchId"`
+}

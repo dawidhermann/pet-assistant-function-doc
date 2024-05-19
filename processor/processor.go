@@ -4,11 +4,14 @@ import (
 	documentai "cloud.google.com/go/documentai/apiv1"
 	"cloud.google.com/go/documentai/apiv1/documentaipb"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/cloudevents/sdk-go/v2/event"
+	"github.com/dawidhermann/pet-assistant-function-doc/messenger"
 	"google.golang.org/api/option"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"os"
+	"strings"
 )
 
 func HandleEvent(ctx context.Context, e event.Event) error {
@@ -18,15 +21,47 @@ func HandleEvent(ctx context.Context, e event.Event) error {
 	}
 	location := os.Getenv("PROCESSOR_LOCATION")
 	processorId := os.Getenv("PROCESSOR_ID")
+	projectId := os.Getenv("PROJECT_ID")
+	statusTopic := os.Getenv("PUBSUB_STATUS_TOPIC")
 	endpoint := fmt.Sprintf("%s-documentai.googleapis.com:443", location)
-	fmt.Println(os.Environ())
 	client, err := documentai.NewDocumentProcessorClient(ctx, option.WithEndpoint(endpoint))
 	if err != nil {
-		fmt.Println(fmt.Errorf("error creating Document AI client: %w", err))
+		return fmt.Errorf("error creating Document AI client: %w", err)
 	}
 	defer client.Close()
+	req := createBatchProcessRequest(processorId, uploadEvent)
+	res, err := client.BatchProcessDocuments(ctx, req)
+	if err != nil {
+		return fmt.Errorf("failed to trigger batch document processing: %w", err)
+	}
+	batchId, err := getBatchId(res.Name())
+	if err != nil {
+		return err
+	}
+	message := processingTriggeredEvent{
+		Name:        uploadEvent.Name,
+		Bucket:      uploadEvent.Bucket,
+		BatchId:     batchId,
+		FullBatchId: res.Name(),
+	}
+	messageStr, err := json.Marshal(message)
+	if err != nil {
+		return fmt.Errorf("failed to convert message to json format: %w", err)
+	}
+	return messenger.WriteMessage(ctx, projectId, statusTopic, messageStr)
+}
 
-	req := &documentaipb.BatchProcessRequest{
+func unmarshalEvent(e event.Event) (StorageUploadEvent, error) {
+	var uploadEvent StorageUploadEvent
+	err := e.DataAs(&uploadEvent)
+	if err != nil {
+		return StorageUploadEvent{}, err
+	}
+	return uploadEvent, nil
+}
+
+func createBatchProcessRequest(processorId string, uploadEvent StorageUploadEvent) *documentaipb.BatchProcessRequest {
+	return &documentaipb.BatchProcessRequest{
 		Name: processorId,
 		InputDocuments: &documentaipb.BatchDocumentsInputConfig{
 			Source: &documentaipb.BatchDocumentsInputConfig_GcsDocuments{
@@ -58,38 +93,18 @@ func HandleEvent(ctx context.Context, e event.Event) error {
 				DisableCharacterBoxesDetection: true,
 			},
 		},
-		//OCR_RESULTS_BUCKET
-		//Source: &documentaipb.ProcessRequest_GcsDocument{
-		//	GcsDocument: &documentaipb.GcsDocument{
-		//		GcsUri:   createGcsUri(uploadEvent.Bucket, uploadEvent.Name),
-		//		MimeType: uploadEvent.ContentType,
-		//	},
-		//},
 	}
-	resp, err := client.BatchProcessDocuments(ctx, req)
-	if err != nil {
-		fmt.Println(fmt.Errorf("processDocument: %w", err))
-	}
-
-	// Handle the results.
-	fmt.Println(fmt.Sprintf("gs://%s", os.Getenv("OCR_RESULTS_BUCKET")))
-	fmt.Println(resp.Name())
-	fmt.Println(resp.Metadata())
-	fmt.Println(resp.Done())
-	//document := resp.Done()
-	//fmt.Printf("Document Text: %s", document.GetText())
-	return nil
-}
-
-func unmarshalEvent(e event.Event) (StorageUploadEvent, error) {
-	var uploadEvent StorageUploadEvent
-	err := e.DataAs(&uploadEvent)
-	if err != nil {
-		return StorageUploadEvent{}, err
-	}
-	return uploadEvent, nil
 }
 
 func createGcsUri(bucket string, object string) string {
 	return fmt.Sprintf("gs://%s/%s", bucket, object)
+}
+
+func getBatchId(batchOperationName string) (string, error) {
+	res := strings.Split(batchOperationName, "/")
+	resLen := len(res)
+	if resLen == 0 {
+		return "", fmt.Errorf("failed to get batch operation id from: %s", batchOperationName)
+	}
+	return res[resLen-1], nil
 }
