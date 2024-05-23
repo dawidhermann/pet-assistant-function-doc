@@ -28,5 +28,6 @@ type processingTriggeredEvent struct {
 	Name        string `json:"name"`
 	BatchId     string `json:"batchId"`
 	FullBatchId string `json:"fullBatchId"`
+	UserId      string `json:"userId"`
 	Status      string `json:"status"`
 }

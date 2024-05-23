@@ -43,6 +43,7 @@ func HandleEvent(ctx context.Context, e event.Event) error {
 		Bucket:      uploadEvent.Bucket,
 		BatchId:     batchId,
 		FullBatchId: res.Name(),
+		UserId:      "user-id",
 		Status:      "STARTED",
 	}
 	messageStr, err := json.Marshal(message)
