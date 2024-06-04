@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"github.com/cloudevents/sdk-go/v2/event"
 	"time"
 )
 
@@ -30,4 +31,13 @@ type processingTriggeredEvent struct {
 	FullBatchId string `json:"fullBatchId"`
 	UserId      string `json:"userId"`
 	Status      string `json:"status"`
+}
+
+func UnmarshalEvent(e event.Event) (StorageUploadEvent, error) {
+	var uploadEvent StorageUploadEvent
+	err := e.DataAs(&uploadEvent)
+	if err != nil {
+		return StorageUploadEvent{}, err
+	}
+	return uploadEvent, nil
 }

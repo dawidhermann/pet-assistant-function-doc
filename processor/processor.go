@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cloudevents/sdk-go/v2/event"
 	"github.com/dawidhermann/pet-assistant-function-doc/messenger"
 	"google.golang.org/api/option"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
@@ -14,11 +13,7 @@ import (
 	"strings"
 )
 
-func HandleEvent(ctx context.Context, e event.Event) error {
-	uploadEvent, err := unmarshalEvent(e)
-	if err != nil {
-		return err
-	}
+func HandleEvent(ctx context.Context, uploadEvent StorageUploadEvent) error {
 	location := os.Getenv("PROCESSOR_LOCATION")
 	processorId := os.Getenv("PROCESSOR_ID")
 	projectId := os.Getenv("PROJECT_ID")
@@ -51,15 +46,6 @@ func HandleEvent(ctx context.Context, e event.Event) error {
 		return fmt.Errorf("failed to convert message to json format: %w", err)
 	}
 	return messenger.WriteMessage(ctx, projectId, statusTopic, messageStr)
-}
-
-func unmarshalEvent(e event.Event) (StorageUploadEvent, error) {
-	var uploadEvent StorageUploadEvent
-	err := e.DataAs(&uploadEvent)
-	if err != nil {
-		return StorageUploadEvent{}, err
-	}
-	return uploadEvent, nil
 }
 
 func createBatchProcessRequest(processorId string, uploadEvent StorageUploadEvent) *documentaipb.BatchProcessRequest {
